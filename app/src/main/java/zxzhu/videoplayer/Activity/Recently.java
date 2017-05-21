@@ -35,7 +35,7 @@ public class Recently extends AppCompatActivity {
     private List<String> share_urls;
     private RecyclerView recyclerView;
     private LinearLayoutManager manager;
-    private ImageView clear;
+    private ImageView clear,back;
     private Toolbar toolbar;
     private Handler handler = new Handler() {
         public void handleMessage(Message message) {
@@ -57,6 +57,7 @@ public class Recently extends AppCompatActivity {
         init();
         setRecyclerView();
         setClear();
+        setBack();
         getFromSQL();
         setItemTouchHelper();
     }
@@ -73,6 +74,7 @@ public class Recently extends AppCompatActivity {
         adapter = new RecentlyAdapter(this, manager);
         toolbar = (Toolbar) findViewById(R.id.bar_recently);
         clear = (ImageView) findViewById(R.id.clear);
+        back = (ImageView) findViewById(R.id.back_recently);
     }
 
     private void setRecyclerView() {
@@ -120,6 +122,9 @@ public class Recently extends AppCompatActivity {
         }).start();
     }
 
+    /**
+     * 清空记录
+     */
     private void setClear() {
         clear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -189,5 +194,12 @@ public class Recently extends AppCompatActivity {
         itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
-
+    private void setBack(){
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
+    }
 }
