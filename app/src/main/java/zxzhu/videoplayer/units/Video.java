@@ -12,6 +12,9 @@ import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,6 +46,8 @@ public class Video implements SurfaceHolder.Callback, MediaPlayer.OnPreparedList
     private String url;
     private SurfaceHolder surfaceHolder;
     private int total = 0;
+    private LinearLayout parent ;
+    private WindowManager wm;
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
@@ -182,13 +187,15 @@ public class Video implements SurfaceHolder.Callback, MediaPlayer.OnPreparedList
         }
     }
 
-    public void load(String url,String id) {
+    public void load(String url,String id,LinearLayout parent,WindowManager wm) {
         File file = new File("/storage/emulated/0/Android/data/zxzhu.videoplayer/files/zxZhu's_VideoPlayer/"+id+".mp4");
         if (file.exists()){
             Toast.makeText(context,"从本地加载",Toast.LENGTH_SHORT).show();
             url = "/storage/emulated/0/Android/data/zxzhu.videoplayer/files/zxZhu's_VideoPlayer/"+id+".mp4";
         }
         this.url = url;
+        this.parent = parent;
+        this.wm = wm;
     }
 
     public void stop() {
@@ -230,8 +237,11 @@ public class Video implements SurfaceHolder.Callback, MediaPlayer.OnPreparedList
         // 必须在surface创建后才能初始化MediaPlayer,否则不会显示图像
 
         player.setDisplay(surfaceHolder);
-        // 设置显示视频显示在SurfaceView上
-
+        // 自适应长宽比
+//        ViewGroup.LayoutParams lp = parent.getLayoutParams();
+//        float i = player.getVideoHeight()/player.getVideoWidth();
+//        lp.height = (int) (wm.getDefaultDisplay().getWidth()*i);
+//        Log.d("999999", "surfaceCreated: "+i);
         //播放完后的回调
         player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override

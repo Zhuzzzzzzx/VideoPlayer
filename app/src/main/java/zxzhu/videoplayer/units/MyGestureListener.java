@@ -69,13 +69,10 @@ public class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
 //        Log.d(TAG, "onScroll: "+disY);
         //左右滑动调节进度
         if (disX<-100||disX>100) {
-            if (video.isPlay()) {
 
                 video.start();
-            }else {
                 video.pause();
                 seekBar.setProgress(seekBar.getProgress() - (int) disX / 100);
-            }
         }
         //屏幕左侧滑动调节亮度
         else if ((int)(e1.getX())<500){
