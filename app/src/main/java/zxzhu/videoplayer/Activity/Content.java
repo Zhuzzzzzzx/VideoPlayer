@@ -30,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +55,7 @@ public class Content extends AppCompatActivity {
     private Video video;
     private SeekBar seekBar;
     private int position;
-    private Animation alpha_in,alpha_out;
+    private Animation alpha_in, alpha_out;
     private LinearLayout buttons;
     private GestureDetector detector;
     private boolean isImgClick = true;
@@ -62,7 +63,7 @@ public class Content extends AppCompatActivity {
     private long mCurTime = 0;
     private int screenModePre = 1;
     private int screenBrightnessPre = 255;
-    private WindowManager wm ;
+    private WindowManager wm;
     private LinearLayout parent;
 
 
@@ -70,18 +71,21 @@ public class Content extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(!Settings.System.canWrite(this)){
-            Toast.makeText(context,"你的手机没有更改设置权限",Toast.LENGTH_SHORT).show();
+        if (!Settings.System.canWrite(this)) {
+
+            try {
+                Toast.makeText(context,"你的手机没有修改设置权限，没有弹出动态修改权限吗？",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                        Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, 0);
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        setContentView(R.layout.activity_content);
-        screenBrightnessPre = getBright();
-        screenModePre = getScreenMode();
-        init();
-        setVideo();
-        setOthers();
-        setClick();
 
     }
+
+
 
     private void init() {
         Intent intent = getIntent();
@@ -105,13 +109,13 @@ public class Content extends AppCompatActivity {
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         buttons = (LinearLayout) findViewById(R.id.buttons);
-        alpha_in = AnimationUtils.loadAnimation(this,R.anim.alpha_in);
-        alpha_out = AnimationUtils.loadAnimation(this,R.anim.alpha_out);
+        alpha_in = AnimationUtils.loadAnimation(this, R.anim.alpha_in);
+        alpha_out = AnimationUtils.loadAnimation(this, R.anim.alpha_out);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         video = new Video(context);
         wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-        parent = (LinearLayout)findViewById(R.id.surfaceView_parent);
-        detector = new GestureDetector(context,new MyGestureListener(Content.this,video,play,seekBar,screenBrightnessPre,0));
+        parent = (LinearLayout) findViewById(R.id.surfaceView_parent);
+        detector = new GestureDetector(context, new MyGestureListener(Content.this, video, play, seekBar, screenBrightnessPre, 0));
     }
 
 
@@ -121,12 +125,12 @@ public class Content extends AppCompatActivity {
      */
     private void setVideo() {
 
-        video.load(url,ids.get(position),parent,wm);
+        video.load(url, ids.get(position), parent, wm);
         video.into(surfaceView);
         video.setCurrentTime(seekBar, time_current, time_total);
         //设置控件长宽
 
-        Log.d(TAG, "setVideo: "+video.getWidth());
+        Log.d(TAG, "setVideo: " + video.getWidth());
 
         play.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,7 +161,7 @@ public class Content extends AppCompatActivity {
                     video.reset();
                     position += 1;
                     url = urls.get(position);
-                    video.setUrl(url,ids.get(position));
+                    video.setUrl(url, ids.get(position));
                     video.prepare();
                     video.start();
                     ISPLAY = 1;
@@ -204,12 +208,12 @@ public class Content extends AppCompatActivity {
         DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         String videoUrl = urls.get(position);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(videoUrl));
-        request.setDestinationInExternalFilesDir(context,"zxZhu's_VideoPlayer", ids.get(position) + ".mp4");
+        request.setDestinationInExternalFilesDir(context, "zxZhu's_VideoPlayer", ids.get(position) + ".mp4");
         request.setTitle(ids.get(position) + ".mp4");
-        request.setVisibleInDownloadsUi( true ) ;
+        request.setVisibleInDownloadsUi(true);
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         long downloadId = downloadManager.enqueue(request);
-        Toast.makeText(context,"开始下载",Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "开始下载", Toast.LENGTH_SHORT).show();
 
     }
 
@@ -242,8 +246,8 @@ public class Content extends AppCompatActivity {
         share.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(context,"分享链接已复制到剪贴板",Toast.LENGTH_SHORT).show();
-                ClipboardManager cmb = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+                Toast.makeText(context, "分享链接已复制到剪贴板", Toast.LENGTH_SHORT).show();
+                ClipboardManager cmb = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                 cmb.setText(share_urls.get(position));
             }
         });
@@ -252,17 +256,15 @@ public class Content extends AppCompatActivity {
     /**
      * 设置屏幕方向
      */
-    private void setDriection(){
-        if (context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-            if (video.isPlay()){
+    private void setDriection() {
+        if (context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (video.isPlay()) {
                 video.pause();
             }
             //设置竖屏
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
-
-        else if (context.getResources().getConfiguration().orientation ==Configuration.ORIENTATION_PORTRAIT) {
-            if (video.isPlay()){
+        } else if (context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            if (video.isPlay()) {
                 video.pause();
             }
             //设置横屏
@@ -274,7 +276,7 @@ public class Content extends AppCompatActivity {
     /**
      * 防止按键遮挡视频 单击隐藏与显示
      */
-    private void setClick(){
+    private void setClick() {
 
         surfaceView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -282,7 +284,7 @@ public class Content extends AppCompatActivity {
 
                 mLastTime = mCurTime;
                 mCurTime = System.currentTimeMillis();
-                if(mCurTime - mLastTime <300){//双击事件
+                if (mCurTime - mLastTime < 300) {//双击事件
                     if (ISPLAY == 0) {
 //                    video.prepare();
 //                    time_total.setText(video.getDuration());
@@ -294,15 +296,15 @@ public class Content extends AppCompatActivity {
                         ISPLAY = 0;
                         play.setImageResource(R.drawable.start);
                     }
-                    mCurTime =0;
+                    mCurTime = 0;
                     mLastTime = 0;
-                }else{//单击事件
+                } else {//单击事件
                     Log.d("000", "onClick: 单击");
                     if (isImgClick) {
                         toolbar.startAnimation(alpha_out);
                         buttons.startAnimation(alpha_out);
                         isImgClick = false;
-                    }else {
+                    } else {
                         toolbar.startAnimation(alpha_in);
                         buttons.startAnimation(alpha_in);
                         isImgClick = true;
@@ -312,12 +314,12 @@ public class Content extends AppCompatActivity {
         });
     }
 
-    private int getScreenMode(){
+    private int getScreenMode() {
         int screenMode = 0;
         try {
             screenMode = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE);
 
-            if(screenMode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC){
+            if (screenMode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
                 Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, 0);
             }
         } catch (Settings.SettingNotFoundException e) {
@@ -326,7 +328,7 @@ public class Content extends AppCompatActivity {
         return screenMode;
     }
 
-    private int getBright(){
+    private int getBright() {
         int screenBrightness = 255;
         try {
             screenBrightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
@@ -355,8 +357,8 @@ public class Content extends AppCompatActivity {
     protected void onDestroy() {
         video.pause();
         //还原初始亮度
-        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS,screenBrightnessPre );
-        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE,screenModePre );
+        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightnessPre);
+        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenModePre);
         super.onDestroy();
     }
 
