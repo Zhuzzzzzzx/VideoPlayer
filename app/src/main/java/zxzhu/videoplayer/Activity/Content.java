@@ -20,6 +20,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -61,15 +62,16 @@ public class Content extends AppCompatActivity {
     private long mCurTime = 0;
     private int screenModePre = 1;
     private int screenBrightnessPre = 255;
+    private WindowManager wm ;
+    private LinearLayout parent;
+
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if(!Settings.System.canWrite(this)){
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                    Uri.parse("package:" + getPackageName()));
-            startActivityForResult(intent,0);
+            Toast.makeText(context,"你的手机没有更改设置权限",Toast.LENGTH_SHORT).show();
         }
         setContentView(R.layout.activity_content);
         screenBrightnessPre = getBright();
@@ -107,6 +109,8 @@ public class Content extends AppCompatActivity {
         alpha_out = AnimationUtils.loadAnimation(this,R.anim.alpha_out);
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         video = new Video(context);
+        wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        parent = (LinearLayout)findViewById(R.id.surfaceView_parent);
         detector = new GestureDetector(context,new MyGestureListener(Content.this,video,play,seekBar,screenBrightnessPre,0));
     }
 
@@ -117,15 +121,13 @@ public class Content extends AppCompatActivity {
      */
     private void setVideo() {
 
-        video.load(url,ids.get(position));
+        video.load(url,ids.get(position),parent,wm);
         video.into(surfaceView);
         video.setCurrentTime(seekBar, time_current, time_total);
         //设置控件长宽
-//        LinearLayout parent = (LinearLayout)findViewById(R.id.surfaceView_parent);
-//        ViewGroup.LayoutParams lp = parent.getLayoutParams();
-//        float i = video.getWidth()/surfaceView.getWidth();
-//        Log.d(TAG, "setVideo: "+video.getWidth());
-//        lp.height = (int) (video.getHight()/i);
+
+        Log.d(TAG, "setVideo: "+video.getWidth());
+
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
